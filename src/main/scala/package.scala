@@ -16,6 +16,22 @@ object doo {
     val inputs = annottees.map(_.tree).toList
 
     object dooTransformer extends Transformer {
+      def transformLine(tree: Tree, accum: Tree): Tree =
+        tree match {
+          case q"$left <-- $right" =>
+            left match {
+              case Ident(t@TermName(_)) =>
+                val valDef = ValDef(Modifiers(Flag.PARAM), t, TypeTree(), EmptyTree)
+                val nested = transform(right)
+                q"$nested.flatMap($valDef => $accum)"
+              case _ =>
+                val nested = transform(right)
+                q"$nested.flatMap { case $left => $accum }"
+            }
+          case _ =>
+            q"$tree.flatMap { case () => $accum }"
+        }
+
       override def transform(tree: Tree): Tree =
         tree match {
           case q"doo($body)" =>
@@ -23,18 +39,10 @@ object doo {
               case Block((stats, last)) =>
                 stats.foldRight(last) { (tree, accum) =>
                   tree match {
-                    case q"$left <-- $right" =>
-                      left match {
-                        case Ident(t@TermName(_)) =>
-                          val valDef = ValDef(Modifiers(Flag.PARAM), t, TypeTree(), EmptyTree)
-                          val nested = transform(right)
-                          q"$nested.flatMap($valDef => $accum)"
-                        case _ =>
-                          val nested = transform(right)
-                          q"$nested.flatMap { case $left => $accum }"
-                      }
+                    case Function(ValDef(mods, _, _, _) :: Nil, body) if mods.hasFlag(Flag.SYNTHETIC) =>
+                      transformLine(body, accum)
                     case _ =>
-                      tree
+                      transformLine(tree, accum)
                   }
                 }
               case _ => c.abort(annottees.head.tree.pos, "doo must take a monadic computation")

@@ -45,4 +45,22 @@ object Scrappy extends Properties("Scrappy") {
     val expected = o.flatMap { case () => p }
     actual == expected
   }
+
+  property("implicit unit pattern") = forAll { (o: Option[Unit], p: Option[Int]) =>
+    val actual = doo {
+      o
+      p
+    }
+    val expected = o.flatMap { case () => p }
+    actual == expected
+  }
+
+  property("implicit unit pattern") = forAll { (o: Option[Int], p: Option[Int]) =>
+    val actual = doo {
+      _ <-- o
+      p
+    }
+    val expected = o.flatMap { case _ => p }
+    actual == expected
+  }
 }
