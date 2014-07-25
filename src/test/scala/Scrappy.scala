@@ -55,7 +55,7 @@ object Scrappy extends Properties("Scrappy") {
     actual == expected
   }
 
-  property("implicit unit pattern") = forAll { (o: Option[Int], p: Option[Int]) =>
+  property("_ to ignore non-unit result") = forAll { (o: Option[Int], p: Option[Int]) =>
     val actual = doo {
       _ <-- o
       p
