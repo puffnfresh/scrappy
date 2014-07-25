@@ -1,12 +1,9 @@
-scalaVersion := "2.11.0-SNAPSHOT"
+scalaVersion := "2.11.2"
 
-scalaOrganization := "org.scala-lang.macro-paradise"
+resolvers += Resolver.sonatypeRepo("releases")
 
-resolvers ++= Seq(
-  Resolver.sonatypeRepo("snapshots"),
-  Resolver.sonatypeRepo("releases")
-)
+libraryDependencies <+= scalaVersion("org.scala-lang" % "scala-reflect" % _)
 
-libraryDependencies <+= (scalaVersion)("org.scala-lang.macro-paradise" % "scala-reflect" % _)
+libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.11.4" % "test"
 
-libraryDependencies += "org.scalacheck" % "scalacheck_2.10" % "1.11.4" % "test"
+addCompilerPlugin("org.scalamacros" % "paradise" % "2.0.1" cross CrossVersion.full)

@@ -3,6 +3,7 @@ package scrappy
 import org.scalacheck.Properties
 import org.scalacheck.Prop.forAll
 
+@doo
 object Scrappy extends Properties("Scrappy") {
   property("identity") = forAll { (o: Option[Int]) =>
     val actual = doo {

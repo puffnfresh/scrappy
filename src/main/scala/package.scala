@@ -1,29 +1,51 @@
+package scrappy
+
 import language.experimental.macros
 
 import reflect.macros.Context
+import annotation.StaticAnnotation
 
-package object scrappy {
-  def doo(code: _): _ = macro dooImpl
+class doo extends StaticAnnotation {
+  def macroTransform(annottees: Any*): Any = macro doo.impl
+}
 
-  def dooImpl(c: Context)(code: c.Tree): c.Tree = {
+object doo {
+  def impl(c: Context)(annottees: c.Expr[Any]*): c.Expr[Any] = {
     import c.universe._
 
-    code match {
-      case Block((stats, last)) =>
-        stats.foldRight(last) { (tree, accum) =>
-          tree match {
-            case q"$left <-- $right" =>
-              left match {
-                case Ident(t@TermName(_)) =>
-                  q"$right.flatMap($t => $accum)"
-                case _ =>
-                  q"$right.flatMap { case $left => $accum }"
-              }
-            case _ => tree
-          }
-        }
+    val inputs = annottees.map(_.tree).toList
 
-      case _ => c.abort(code.pos, "doo must take a monadic computation")
+    object dooTransformer extends Transformer {
+      override def transform(tree: Tree): Tree =
+        tree match {
+          case q"doo($body)" =>
+            body match {
+              case Block((stats, last)) =>
+                stats.foldRight(last) { (tree, accum) =>
+                  tree match {
+                    case q"$left <-- $right" =>
+                      left match {
+                        case Ident(t@TermName(_)) =>
+                          val valDef = ValDef(Modifiers(Flag.PARAM), t, tq"scala.Int", EmptyTree)
+                          val nested = transform(right)
+                          q"$nested.flatMap($valDef => $accum)"
+                        case _ =>
+                          val nested = transform(right)
+                          q"$nested.flatMap { case $left => $accum }"
+                      }
+                    case _ =>
+                      tree
+                  }
+                }
+              case _ => c.abort(annottees.head.tree.pos, "doo must take a monadic computation")
+            }
+          case _ =>
+            super.transform(tree)
+        }
     }
+
+    val expandees = inputs.map(t => dooTransformer.transform(t))
+
+    c.Expr(Block(expandees, Literal(Constant(()))))
   }
 }
