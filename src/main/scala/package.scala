@@ -19,13 +19,12 @@ object doo {
       def transformLine(tree: Tree, accum: Tree): Tree =
         tree match {
           case q"$left <-- $right" =>
+            val nested = transform(right)
             left match {
               case Ident(t@TermName(_)) =>
                 val valDef = ValDef(Modifiers(Flag.PARAM), t, TypeTree(), EmptyTree)
-                val nested = transform(right)
                 q"$nested.flatMap($valDef => $accum)"
               case _ =>
-                val nested = transform(right)
                 q"$nested.flatMap { case $left => $accum }"
             }
           case _ =>
