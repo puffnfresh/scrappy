@@ -21,7 +21,7 @@ object doo {
           case q"$left <-- $right" =>
             val nested = transform(right)
             left match {
-              case Ident(t@TermName(_)) =>
+              case Ident(t: TermName) =>
                 val valDef = ValDef(Modifiers(Flag.PARAM), t, TypeTree(), EmptyTree)
                 q"$nested.flatMap($valDef => $accum)"
               case _ =>
@@ -38,7 +38,7 @@ object doo {
               case Block((stats, last)) =>
                 stats.foldRight(last) { (tree, accum) =>
                   tree match {
-                    case Function(ValDef(mods, _, _, _) :: Nil, body) if mods.hasFlag(Flag.SYNTHETIC) =>
+                    case Function(ValDef(mods, _, _, _) :: Nil, body) if utils.hasSyntheticFlag(c.universe)(mods) =>
                       transformLine(body, accum)
                     case _ =>
                       transformLine(tree, accum)
