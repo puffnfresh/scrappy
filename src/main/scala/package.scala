@@ -26,7 +26,7 @@ object doo {
                     case q"$left <-- $right" =>
                       left match {
                         case Ident(t@TermName(_)) =>
-                          val valDef = ValDef(Modifiers(Flag.PARAM), t, tq"scala.Int", EmptyTree)
+                          val valDef = ValDef(Modifiers(Flag.PARAM), t, TypeTree(), EmptyTree)
                           val nested = transform(right)
                           q"$nested.flatMap($valDef => $accum)"
                         case _ =>
