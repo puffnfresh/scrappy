@@ -1,3 +1,11 @@
+name := "scrappy"
+
+organization := "org.brianmckenna"
+
+version := "0.0.1"
+
+licenses += "MIT License" -> url("http://www.opensource.org/licenses/mit-license.html")
+
 scalaVersion := "2.11.2"
 
 resolvers += Resolver.sonatypeRepo("releases")
